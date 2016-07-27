@@ -1,0 +1,6 @@
+This only works on Windows currently.
+
+Download beanshell-setup.jar and double-click it to install it.
+
+Afterward, files with the .bsh extension should display with a nice icon
+and run automatically when you double-click them.

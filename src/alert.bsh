@@ -1,0 +1,10 @@
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+
+JFrame frame = new JFrame();
+frame.setLocationRelativeTo(null);
+
+void alert(String message) {
+    JOptionPane.showMessageDialog(frame, message);
+    frame.dispose();
+}

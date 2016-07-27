@@ -1,0 +1,6 @@
+import java.util.Date;
+
+Date getCurrentDate() 
+{
+    return new Date();
+}

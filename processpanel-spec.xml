@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<processing>
+    <logfiledir>$INSTALL_PATH/log</logfiledir>
+
+    <job name="Create Registry Entries for BeanShell File Association">
+        <os family="windows" />
+        <executefile name="java" workingDir="$INSTALL_PATH\lib">
+            <arg>-jar</arg>
+            <arg>$INSTALL_PATH\lib\create-bsh-file-association.jar</arg>
+            <arg>$INSTALL_PATH</arg>
+        </executefile>
+    </job>
+</processing>
