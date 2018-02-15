@@ -1,26 +1,33 @@
 package com.alteredmechanism.beanshell;
-import ca.beq.util.win32.registry.RegistryKey;
-import ca.beq.util.win32.registry.RegistryValue;
-import ca.beq.util.win32.registry.RootKey;
 
 import com.sun.jna.Library;
 import com.sun.jna.Native;
 import com.sun.jna.NativeLong;
 import com.sun.jna.Pointer;
+import com.sun.jna.platform.win32.Advapi32Util;
+import com.sun.jna.platform.win32.WinReg;
+
+// TODO - Remove references to this jar
+import ca.beq.util.win32.registry.RegistryKey;
+import ca.beq.util.win32.registry.RegistryValue;
+import ca.beq.util.win32.registry.RootKey;
 
 public class BeanShellFileAssociator {
 
     public static final NativeLong SHCNE_ASSOCCHANGED = new NativeLong(0x8000000);
     public static final int SHCNF_IDLIST = 0;
 
-    private String installDir = "C:\\Program Files\\BeanShell";
-    private String progID = "BeanShell.Script.2";
-    private String friendlyTypeName = "BeanShell Script";
-    private String infoTip = "BeanShell is a scripting language for the Java platform.";
-    private String defaultIcon = installDir + "\\icons\\beany.ico";
-    private String command = installDir + "\\bin\\beanshell.bat %1";
-    private String commandActionText = "Run BeanShell Script";
-    private String contentType = "text/plain";
+    public static final String BEANSHELL_FILE_EXTENSION = ".bsh";
+    
+    public static final String BEANSHELL_PROG_ID = "BeanShell.Script.2";
+    public static final String BEANSHELL_FRIENDLY_TYPE_NAME = "BeanShell Script";
+    public static final String BEANSHELL_INFO_TIP = "BeanShell is a scripting language for the Java platform.";
+    public static final String BEANSHELL_COMMAND_ACTION_TEXT = "Run BeanShell Script";
+    public static final String BEANSHELL_CONTENT_TYPE = "text/plain";
+
+    public String installDir = "C:\\Program Files\\BeanShell";
+    public String defaultIcon = installDir + "\\icons\\beany.ico";
+    public String command = installDir + "\\bin\\beanshell.bat %1";
 
     private RegistryKey progIDKey = null;
     private RegistryKey extKey = null;
@@ -58,7 +65,7 @@ public class BeanShellFileAssociator {
         String nativeLibPath = installDir + "\\lib\\jRegistryKey.dll";
         System.out.println("Initializing native library: " + nativeLibPath);
         RegistryKey.initialize(nativeLibPath);
-        progIDKey = new RegistryKey(RootKey.HKEY_CLASSES_ROOT, progID);
+        progIDKey = new RegistryKey(RootKey.HKEY_CLASSES_ROOT, BEANSHELL_PROG_ID);
         extKey = new RegistryKey(RootKey.HKEY_CLASSES_ROOT, ".bsh");
 
     }
@@ -71,6 +78,13 @@ public class BeanShellFileAssociator {
             }
         }
     }
+    
+    public void disassociate2() {
+    	// These should throw a Win32Exception type.
+    	// TODO - Determine if deletion of subkeys is needed
+    	Advapi32Util.registryDeleteKey(WinReg.HKEY_CLASSES_ROOT, BEANSHELL_PROG_ID);
+   		Advapi32Util.registryDeleteKey(WinReg.HKEY_CLASSES_ROOT, BEANSHELL_FILE_EXTENSION);
+    }
 
     public void notifySystemOfAssociationChange() {
         System.out.println("Notifying system of file association change.");
@@ -79,23 +93,36 @@ public class BeanShellFileAssociator {
         System.out.println("Notification complete.");
     }
 
+    public void associate2() {
+    	// TODO - Break the below into multiple methods
+    	Advapi32Util.registryCreateKey(WinReg.HKEY_CLASSES_ROOT, BEANSHELL_PROG_ID);
+    	Advapi32Util.registrySetStringValue(WinReg.HKEY_CLASSES_ROOT, BEANSHELL_PROG_ID, BEANSHELL_FRIENDLY_TYPE_NAME);
+    	Advapi32Util.registrySetStringValue(WinReg.HKEY_CLASSES_ROOT, BEANSHELL_PROG_ID + "\\FriendlyTypeName", BEANSHELL_FRIENDLY_TYPE_NAME);
+    	Advapi32Util.registrySetStringValue(WinReg.HKEY_CLASSES_ROOT, BEANSHELL_PROG_ID + "\\InfoTip", BEANSHELL_INFO_TIP);
+    	Advapi32Util.registrySetStringValue(WinReg.HKEY_CLASSES_ROOT, BEANSHELL_PROG_ID + "\\DefaultIcon", defaultIcon);
+    	Advapi32Util.registryCreateKey(WinReg.HKEY_CLASSES_ROOT, BEANSHELL_PROG_ID, "shell");
+    	Advapi32Util.registryCreateKey(WinReg.HKEY_CLASSES_ROOT, BEANSHELL_PROG_ID, "shell\\" + BEANSHELL_COMMAND_ACTION_TEXT);
+    	Advapi32Util.registrySetStringValue(WinReg.HKEY_CLASSES_ROOT, BEANSHELL_PROG_ID + "\\shell\\" + BEANSHELL_COMMAND_ACTION_TEXT, "command", command);
+    	// TODO - Implement creation of extension keys/values
+    }
+    	
     public void associate() {
         System.out.println("Creating registry key: " + progIDKey.toString());
         progIDKey.create();
-        RegistryValue friendlyTypeValue = new RegistryValue(friendlyTypeName);
+        RegistryValue friendlyTypeValue = new RegistryValue(BEANSHELL_FRIENDLY_TYPE_NAME);
         progIDKey.setValue(friendlyTypeValue);
 
-        progIDKey.createSubkey("FriendlyTypeName").setValue(new RegistryValue(friendlyTypeName));
-        progIDKey.createSubkey("InfoTip").setValue(new RegistryValue(infoTip));
+        progIDKey.createSubkey("FriendlyTypeName").setValue(new RegistryValue(BEANSHELL_FRIENDLY_TYPE_NAME));
+        progIDKey.createSubkey("InfoTip").setValue(new RegistryValue(BEANSHELL_INFO_TIP));
         progIDKey.createSubkey("DefaultIcon").setValue(new RegistryValue(defaultIcon));
         RegistryKey shellKey = progIDKey.createSubkey("shell");
-        RegistryKey actionTextKey = shellKey.createSubkey(commandActionText);
+        RegistryKey actionTextKey = shellKey.createSubkey(BEANSHELL_COMMAND_ACTION_TEXT);
         actionTextKey.createSubkey("command").setValue(new RegistryValue(command));
 
         System.out.println("Creating registry key: " + extKey.toString());
         extKey.create();
-        extKey.setValue(new RegistryValue(progID));
-        extKey.createSubkey("Content Type").setValue(new RegistryValue(contentType));
+        extKey.setValue(new RegistryValue(BEANSHELL_PROG_ID));
+        extKey.createSubkey("Content Type").setValue(new RegistryValue(BEANSHELL_CONTENT_TYPE));
         System.out.println("Done setting registry keys");
 
         notifySystemOfAssociationChange();

@@ -1,4 +1,4 @@
-import org.beanshelldoubleclick.win32.Wtsapi32;
+import com.alteredmechanism.win32.Wtsapi32;
 
 import bsh.CallStack;
 import bsh.Interpreter;
