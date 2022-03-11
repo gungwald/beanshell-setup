@@ -7,12 +7,12 @@
 
 <project default="BeanShellInstaller">
 
-	<property name="izpackDir" value="C:/Program Files/IzPack" />
+	<property name="izPackDir" value="dist/lib" />
 
 
 	<path id="build.classpath">
-		<fileset dir="${izpackDir}">
-			<include name="lib/*.jar" />
+		<fileset dir="${izPackDir}">
+			<include name="izpack-standalone-compiler-4.3.5.jar" />
 		</fileset>
 	</path>
 
@@ -23,13 +23,14 @@
 		<jar basedir="${basedir}/dist/classes" destfile="dist/lib/create-bsh-file-association.jar" >
             <manifest>
                 <attribute name="Built-By" value="${user.name}"/>
-                <attribute name="Main-Class" value="org.beanshelldoubleclick.install.BeanShellFileAssociator"/>
-                <attribute name="Class-Path" value="./jna-3.5.1.jar ./platform-3.5.1.jar ./jRegistryKey.jar"/>
+                <attribute name="Main-Class" value="com.alteredmechanism.beanshell.BeanShellFileAssociator"/>
+                <attribute name="Class-Path" value="./jna-5.10.0.jar ./jna-platform-5.10.0.jar"/>
             </manifest>
         </jar>
 	</target>
 
 	<target name="BeanShellInstaller" depends="FileAssociationJar">
-		<izpack input="${basedir}/installer.xml" output="${basedir}/beanshell-double-click-setup.jar" installerType="standard" basedir="${basedir}" izPackDir="${izpackDir}" />
+		<izpack input="${basedir}/installer.xml" output="${basedir}/beanshell-setup.jar" 
+			installerType="standard" basedir="${basedir}" izPackDir="${izPackDir}" />
 	</target>
 </project>

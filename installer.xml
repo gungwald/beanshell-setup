@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="iso-8859-1" standalone="yes" ?>
 
+<!-- This DOCTYPE tag shuts off the warning from Eclipse that there is no DTD
+     associated with this XML file. -->
+
+<!DOCTYPE installation>
+
 <installation version="1.0">
 
     <info>
@@ -12,7 +17,7 @@
         <url>http://beanshell.org</url>
         <javaversion>1.6</javaversion>
         <requiresjdk>no</requiresjdk>
-        <run-privileged condition="izpack.windowsinstall.vista|izpack.macinstall" />
+        <run-privileged condition="izpack.windowsinstall|izpack.macinstall" />
     </info>
 
     <guiprefs width="640" height="480" resizable="yes" >
@@ -40,14 +45,15 @@
     </panels>
 
     <jar src="dist/lib/create-bsh-file-association.jar" />
-    <jar src="dist/lib/jna-3.5.1.jar" />
-    <jar src="dist/lib/platform-3.5.1.jar" />
-    <jar src="dist/lib/jRegistryKey.jar" />
+    <jar src="dist/lib/jna-5.10.0.jar" />
+    <jar src="dist/lib/jna-platform-5.10.0.jar" />
 
     <packs>
         <pack name="Core" required="yes">
             <description>The core files needed for the application</description>
-            <fileset dir="dist" targetdir="$INSTALL_PATH" override="true" />
+            <fileset dir="dist" targetdir="$INSTALL_PATH" 
+				excludes="lib/izpack-standalone-compiler-4.3.5.jar"
+				override="true" />
         </pack>
     </packs>
 
