@@ -6,10 +6,12 @@ import com.sun.jna.NativeLong;
 import com.sun.jna.Pointer;
 
 import static com.sun.jna.platform.win32.Advapi32Util.registryCreateKey;
+import static com.sun.jna.platform.win32.Advapi32Util.registryGetKeys;
 import static com.sun.jna.platform.win32.Advapi32Util.registryDeleteKey;
 import static com.sun.jna.platform.win32.Advapi32Util.registryKeyExists;
 import static com.sun.jna.platform.win32.Advapi32Util.registrySetStringValue;
 import static com.sun.jna.platform.win32.Advapi32Util.registrySetExpandableStringValue;
+import static com.sun.jna.platform.win32.WinReg.HKEY;
 import static com.sun.jna.platform.win32.WinReg.HKEY_CLASSES_ROOT;
 
 public class BeanShellFileAssociator {
@@ -58,18 +60,34 @@ public class BeanShellFileAssociator {
 	public BeanShellFileAssociator(String installDirArg) {
 		installDir = installDirArg;
 		defaultIcon = installDir + "\\icons\\beany.ico";
-		command = "\"" + installDir + "\\bin\\beanshell.bat\" %1";
+		command = "\"" + installDir + "\\bin\\beanshell.bat\" \"%1\"";
 	}
 
 	public void disassociate() {
-		// TODO - Determine if deletion of subkeys is needed
-		String[] keys = new String[] { BEANSHELL_PROG_ID + "\\DefaultIcon", BEANSHELL_PROG_ID, BEANSHELL_FILE_EXTENSION };
+		String[] keys = new String[] { BEANSHELL_PROG_ID, BEANSHELL_FILE_EXTENSION };
 		for (String key : keys) {
 			if (registryKeyExists(HKEY_CLASSES_ROOT, key)) {
-				System.out.printf("Deleting key HKEY_CLASSES_ROOT\\%s%n", key);
-				registryDeleteKey(HKEY_CLASSES_ROOT, key);
+				System.out.printf("Deleting everything under registry key HKEY_CLASSES_ROOT\\%s%n", key);
+				deleteRegistryBranch(HKEY_CLASSES_ROOT, key);
+			} else {
+				System.out.printf("Key does not exist: HKEY_CLASSES_ROOT\\%s%n", key);
 			}
 		}
+	}
+
+	/**
+	 * Danger Will Robinson
+	 * 
+	 * @param rootKey
+	 * @param keyPath
+	 */
+	public void deleteRegistryBranch(HKEY rootKey, String keyPath) {
+		String[] subKeys = registryGetKeys(rootKey, keyPath);
+		for (String subKey : subKeys) {
+			deleteRegistryBranch(rootKey, keyPath + "\\" + subKey);
+		}
+		System.out.printf("Deleting registry key %s\\%s%n", rootKey.getClass().getSimpleName(), keyPath);
+		registryDeleteKey(rootKey, keyPath);
 	}
 
 	public void notifySystemOfAssociationChange() {
@@ -97,7 +115,8 @@ public class BeanShellFileAssociator {
 	public void defineBeanShellCommand() {
 		registryCreateKey(HKEY_CLASSES_ROOT, BEANSHELL_PROG_ID, "shell");
 		registryCreateKey(HKEY_CLASSES_ROOT, BEANSHELL_PROG_ID + "\\shell", BEANSHELL_COMMAND_ACTION_TEXT);
-		registrySetStringValue(HKEY_CLASSES_ROOT, BEANSHELL_PROG_ID + "\\shell\\" + BEANSHELL_COMMAND_ACTION_TEXT, "command", command);
+		registryCreateKey(HKEY_CLASSES_ROOT, BEANSHELL_PROG_ID + "\\shell\\" + BEANSHELL_COMMAND_ACTION_TEXT, "command");
+		registrySetStringValue(HKEY_CLASSES_ROOT, BEANSHELL_PROG_ID + "\\shell\\" + BEANSHELL_COMMAND_ACTION_TEXT + "\\command", null, command);
 	}
 
 	public void createBshFileExtensionAssociation() {

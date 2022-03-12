@@ -19,18 +19,50 @@
 
 	<taskdef name="izpack" classpathref="build.classpath" classname="com.izforge.izpack.ant.IzPackTask" />
 
-	<target name="FileAssociationJar">
-		<jar basedir="${basedir}/dist/classes" destfile="dist/lib/create-bsh-file-association.jar" >
-            <manifest>
-                <attribute name="Built-By" value="${user.name}"/>
-                <attribute name="Main-Class" value="com.alteredmechanism.beanshell.BeanShellFileAssociator"/>
-                <attribute name="Class-Path" value="./jna-5.10.0.jar ./jna-platform-5.10.0.jar"/>
-            </manifest>
-        </jar>
+	<target name="CompileJavaSources">
+		<javac srcdir="src" destdir="dist/classes" target="1.6" includeantruntime="false">
+			<classpath>
+				<fileset>
+					<include name="dist/lib/jna-*.jar" />
+				</fileset>
+				<dirset dir="dist/classes" />
+			</classpath>
+		</javac>
+	</target>
+
+	<target name="FileAssociationJar" depends="CompileJavaSources">
+		<jar basedir="${basedir}/dist/classes" destfile="dist/lib/create-bsh-file-association.jar">
+			<manifest>
+				<attribute name="Built-By" value="${user.name}" />
+				<attribute name="Main-Class" value="com.alteredmechanism.beanshell.BeanShellFileAssociator" />
+				<attribute name="Class-Path" value="./jna-5.10.0.jar ./jna-platform-5.10.0.jar" />
+			</manifest>
+		</jar>
 	</target>
 
 	<target name="BeanShellInstaller" depends="FileAssociationJar">
-		<izpack input="${basedir}/installer.xml" output="${basedir}/beanshell-setup.jar" 
-			installerType="standard" basedir="${basedir}" izPackDir="${izPackDir}" />
+		<mkdir dir="dist/commands/bsh"/>
+		<mkdir dir="dist/commands/java"/>
+		<copy todir="dist/commands/bsh" overwrite="true">
+			<fileset dir="src">
+				<include name="*.bsh"/>
+			</fileset>
+		</copy>
+		<copy todir="dist/commands/java" overwrite="true">
+			<fileset dir="dist/classes">
+				<include name="*.class"/>
+			</fileset>
+		</copy>
+		<izpack input="${basedir}/installer.xml" output="${basedir}/beanshell-setup.jar" installerType="standard" basedir="${basedir}" izPackDir="${izPackDir}" />
+	</target>
+
+	<target name="clean">
+		<delete verbose="true">
+			<fileset dir="${basedir}">
+				<include name="dist/classes/**" />
+				<include name="beanshell-setup.jar" />
+				<include name="dist/lib/create-bsh-file-association.jar" />
+			</fileset>
+		</delete>
 	</target>
 </project>

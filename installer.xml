@@ -51,9 +51,10 @@
     <packs>
         <pack name="Core" required="yes">
             <description>The core files needed for the application</description>
-            <fileset dir="dist" targetdir="$INSTALL_PATH" 
-				excludes="lib/izpack-standalone-compiler-4.3.5.jar"
-				override="true" />
+            <fileset dir="dist" targetdir="$INSTALL_PATH" override="true" >
+				<exclude name="lib/izpack-standalone-compiler-4.3.5.jar"/>
+				<exclude name="classes/**"/>
+			</fileset>
         </pack>
     </packs>
 
