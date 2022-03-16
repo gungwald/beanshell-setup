@@ -1,0 +1,8 @@
+import java.util.Date;
+import java.text.SimpleDateFormat;
+
+String formatDate(Date date, String formatSpecification) 
+{
+    SimpleDateFormat formatter = new SimpleDateFormat(formatSpecification);
+    return formatter.format(date);
+}

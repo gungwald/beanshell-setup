@@ -16,4 +16,13 @@
             <arg>$INSTALL_PATH</arg> <!-- Install directory is a required argument -->
         </executefile>
     </job>
+
+    <job name="Update Path to Include BeanShell bin Directory">
+        <os family="windows" />
+        <executefile name="java" workingDir="$INSTALL_PATH">
+            <arg>-jar</arg>
+            <arg>$INSTALL_PATH\lib\update-path.jar</arg>
+            <arg>$INSTALL_PATH\bin</arg> <!-- Install directory is a required argument -->
+        </executefile>
+    </job>
 </processing>
