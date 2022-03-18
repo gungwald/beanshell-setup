@@ -1,1 +1,1 @@
-@call %~dp0beanshell.bat %*
+@call "%~dp0beanshell.bat" %*

@@ -34,8 +34,8 @@
 @REM ----------------------------------------------------------------------------
 
 @REM Detect OS/2 and run a version of this script that works in OS/2.
-ver | find /i "Operating System/2"
-if errorlevel 1 (
+@ver | find /i "Operating System/2"
+@if errorlevel 1 (
 	goto notOS2
 ) else (
 	call lib\mvnw-os2.cmd %1 %2 %3 %4 %5 %6 %7 %8 %9

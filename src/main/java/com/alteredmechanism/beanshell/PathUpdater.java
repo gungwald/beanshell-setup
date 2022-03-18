@@ -7,8 +7,12 @@ import static com.sun.jna.platform.win32.Advapi32Util.registrySetExpandableStrin
 import static com.sun.jna.platform.win32.WinReg.HKEY_LOCAL_MACHINE;
 import static com.sun.jna.platform.win32.WinDef.LPARAM;
 import static com.sun.jna.platform.win32.WinDef.WPARAM;
+import static com.sun.jna.platform.win32.WinDef.LRESULT;
+import static com.sun.jna.platform.win32.WinDef.DWORDByReference;
+import static com.sun.jna.platform.win32.WinDef.DWORD;
 import static com.sun.jna.platform.win32.WTypes.LPSTR;
 import com.sun.jna.platform.win32.User32;
+import com.sun.jna.platform.win32.Kernel32Util;
 import static com.sun.jna.platform.win32.WinUser.HWND_BROADCAST;
 import com.sun.jna.Pointer;
 
@@ -49,12 +53,23 @@ public class PathUpdater {
 	}
 
 	private void broadcastPathUpdate() {
-		final int TIMEOUT = 1000;
-		LPSTR whatChanged = new LPSTR("Environment");
-		Pointer p = (Pointer) whatChanged.toNative();
-		long nativePointerValue = Pointer.nativeValue(p);
-		LPARAM env = new LPARAM(nativePointerValue);
-		User32.INSTANCE.SendMessageTimeout(HWND_BROADCAST, WM_SETTINGCHANGE, null, env, 0, TIMEOUT, null);
+		final int TIMEOUT_MILLISECONDS = 1000;
+		final WPARAM noParam = new WPARAM(Pointer.nativeValue(Pointer.NULL));
+		final int noFlags = 0;
+		DWORDByReference dwordRefResult = new DWORDByReference(new DWORD(0));
+		LRESULT result = User32.INSTANCE.SendMessageTimeout(HWND_BROADCAST, WM_SETTINGCHANGE, noParam, convertStringToLPARAM("Environment"), noFlags, TIMEOUT_MILLISECONDS, dwordRefResult);
+		if (result.longValue() == 0) {
+			// A zero result is an error.
+			String errorMessage = Kernel32Util.getLastErrorMessage();
+			System.err.printf("Failed to send PATH environment variable update message: %s%n", errorMessage);
+		}
+	}
+	
+	public LPARAM convertStringToLPARAM(String s) {
+		LPSTR lpstr = new LPSTR(s);
+		Pointer pointer = (Pointer) lpstr.toNative();
+		long nativePointerValue = Pointer.nativeValue(pointer);
+		return new LPARAM(nativePointerValue);
 	}
 
 	public void removeFromSystemPath(String pathEnvVarName, String elementValue) {

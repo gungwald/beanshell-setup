@@ -1,62 +1,61 @@
-<?xml version="1.0" encoding="iso-8859-1" standalone="yes" ?>
+<?xml version="1.0" encoding="iso-8859-1" standalone="yes"?>
 
-<!-- This DOCTYPE tag shuts off the warning from Eclipse that there is no DTD
-     associated with this XML file. -->
+<izpack:installation version="5.0" xmlns:izpack="http://izpack.org/schema/installation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://izpack.org/schema/installation http://izpack.org/schema/5.0/izpack-installation-5.0.xsd">
 
-<!DOCTYPE installation>
+	<!-- The Maven pom.xml is about building beanshell-setup, whereas
+		 this file is about installing BeanShell inself. -->
+	<info>
+		<appname>@{info.appName}</appname> <!-- The @ indicates a Maven property. -->
+		<appversion>@{beanshell.version}</appversion>
+		<authors>
+			<author name="Pat Niemeyer (language author)" email="pat@pat.net" />
+			<author name="Bill Chatfield (installer)" email="bill_chatfield@yahoo.com" />
+		</authors>
+		<url>@{info.appUrl}</url>
+		<javaversion>@{maven.compiler.target}</javaversion>
+		<requiresjdk>no</requiresjdk>
+		<run-privileged condition="izpack.windowsinstall|izpack.macinstall" />
+		<uninstaller write="yes" />
+		<readinstallationinformation>false</readinstallationinformation> <!-- Prevent izpack from stopping because old version is "incompatible". -->
+		<writeinstallationinformation>false</writeinstallationinformation> <!-- Prevent runtime error -->
+	</info>
 
-<installation version="1.0">
+	<installerrequirements>
+		<installerrequirement condition="izpack.windowsinstall" message="This installer runs on Windows only." />
+	</installerrequirements>
 
-    <info>
-        <appname>BeanShell</appname>
-        <appversion>2.1b5</appversion>
-        <authors>
-            <author name="Pat Niemeyer (language author)" email="pat@pat.net" />
-            <author name="Bill Chatfield (installer)" email="bill_chatfield@yahoo.com" />
-        </authors>
-        <url>http://beanshell.org</url>
-        <javaversion>1.6</javaversion>
-        <requiresjdk>no</requiresjdk>
-        <run-privileged condition="izpack.windowsinstall|izpack.macinstall" />
-    </info>
+	<guiprefs width="640" height="480" resizable="yes">
+		<modifier key="labelFontSize" value="1.1" />
+		<modifier key="allYGap" value="10" />
+	</guiprefs>
 
-    <guiprefs width="640" height="480" resizable="yes" >
-        <modifier key="labelFontSize" value="1.1"/>
-        <modifier key="allYGap" value="10"/>
-    </guiprefs>
+	<locale>
+		<langpack iso3="eng" />
+	</locale>
 
-    <locale>
-        <langpack iso3="eng" />
-    </locale>
-    
-    <resources>
-        <res id="InfoPanel.info" src="dist/Readme.txt" />
-        <res id="LicencePanel.licence" src="dist/License.txt" />
-        <res id="ProcessPanel.Spec.xml" src="processpanel-spec.xml" />
-    </resources>
-    
-    <panels>
-        <panel classname="HelloPanel" />
-        <panel classname="TargetPanel" />
-        <panel classname="PacksPanel" />
-        <panel classname="InstallPanel" />
-        <panel classname="ProcessPanel" />
-        <panel classname="FinishPanel" />
-    </panels>
+	<resources>
+		<res id="InfoPanel.info" src="appfiles/Readme.txt" />
+		<res id="LicencePanel.licence" src="appfiles/License.txt" />
+		<res id="ProcessPanel.Spec.xml" src="processpanel-spec.xml" />
+	</resources>
 
-    <jar src="dist/lib/create-bsh-file-association.jar" />
-    <jar src="dist/lib/update-path.jar" />
-    <jar src="dist/lib/jna-5.10.0.jar" />
-    <jar src="dist/lib/jna-platform-5.10.0.jar" />
+	<panels>
+		<panel classname="HelloPanel" />
+		<panel classname="TargetPanel" />
+		<panel classname="PacksPanel" />
+		<panel classname="InstallPanel" />
+		<panel classname="ProcessPanel" />
+		<panel classname="FinishPanel" />
+	</panels>
 
-    <packs>
-        <pack name="Core" required="yes">
-            <description>The core files needed for the application</description>
-            <fileset dir="dist" targetdir="$INSTALL_PATH" override="true" >
-				<exclude name="lib/izpack-standalone-compiler-4.3.5.jar"/>
-				<exclude name="classes/**"/>
-			</fileset>
-        </pack>
-    </packs>
+	<jar src="custom/jna-@{jna.version}.jar" />
+	<jar src="custom/jna-platform-@{jna.version}.jar" />
 
-</installation>
+	<packs>
+		<pack name="Core" required="yes">
+			<description>The core files needed for the application</description>
+			<fileset dir="appfiles" targetdir="$INSTALL_PATH" override="true" />
+		</pack>
+	</packs>
+
+</izpack:installation>
