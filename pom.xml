@@ -1,0 +1,196 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>com.alteredmechanism.beanshell</groupId>
+	<artifactId>beanshell-setup</artifactId>
+	<packaging>izpack-jar</packaging>
+	<version>2.0</version>
+	<name>beanshell-setup</name>
+	<url>http://maven.apache.org</url>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<maven.compiler.target>1.6</maven.compiler.target>
+		<maven.compiler.source>1.6</maven.compiler.source>
+		<izpack.version>5.0.9</izpack.version>
+		<jna.version>5.10.0</jna.version>
+
+		<!-- Variables used in izpack install.xml. -->
+		<staging.dir>${project.build.directory}/izpack-staging</staging.dir>
+		<info.appName>BeanShell</info.appName>
+		<beanshell.version>2.0b6</beanshell.version>
+		<info.appUrl>https://beanshell.org</info.appUrl>
+		<izpack.dir.app>${basedir}/src/main/izpack</izpack.dir.app>
+		<staging.dir.app>${staging.dir}/appfiles</staging.dir.app>
+		<resources.src.dir>${basedir}/src/main/resources</resources.src.dir>
+		<scripts.src.dir>${basedir}/src/main/scripts</scripts.src.dir>
+		<beanshell.src.dir>${basedir}/src/main/beanshell</beanshell.src.dir>
+	</properties>
+
+	<repositories>
+		<repository>
+			<id>central-insecure</id>
+			<name>Central Repository with no SSL so Java 1.5 will work</name>
+			<url>http://insecure.repo1.maven.org/maven2/</url>
+		</repository>
+	</repositories>
+
+	<pluginRepositories>
+		<pluginRepository>
+			<id>central-insecure</id>
+			<name>Central Repository with no SSL so Java 1.5 will work</name>
+			<url>http://insecure.repo1.maven.org/maven2/</url>
+			<layout>default</layout>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+			<releases>
+				<updatePolicy>never</updatePolicy>
+			</releases>
+		</pluginRepository>
+	</pluginRepositories>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<version>3.0.0</version>
+				<executions>
+					<execution>
+						<id>create-staging-area</id>
+						<phase>prepare-package</phase>
+						<goals>
+							<goal>run</goal>
+						</goals>
+						<configuration>
+							<target>
+								<copy todir="${staging.dir}">
+									<fileset dir="${izpack.dir.app}" />
+								</copy>
+								<mkdir dir="${staging.dir.app}" />
+								<copy todir="${staging.dir.app}">
+									<fileset dir="${resources.src.dir}" includes="**"/>
+								</copy>
+								<mkdir dir="${staging.dir.app}/commands"/>
+								<copy todir="${staging.dir.app}/commands">
+									<fileset dir="${beanshell.src.dir}" includes="**"/>
+								</copy>
+								<mkdir dir="${staging.dir.app}/bin"/>
+								<copy todir="${staging.dir.app}/bin">
+									<fileset dir="${scripts.src.dir}" includes="**"/>
+								</copy>
+								<copy todir="${staging.dir.app}/classes">
+									<fileset dir="target/classes" includes="**/*.class"/>
+								</copy>
+							</target>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<configuration>
+					<excludeTransitive>false</excludeTransitive>
+					<!-- reference our custom panels jar in our installer descriptor without its version -->
+					<stripVersion>false</stripVersion>
+					<overWriteReleases>true</overWriteReleases>
+					<overWriteSnapshots>true</overWriteSnapshots>
+					<overWriteIfNewer>true</overWriteIfNewer>
+				</configuration>
+				<executions>
+					<execution>
+						<!-- copy *application* jars to izpack staging lib -->
+						<id>copy-product-dependencies</id>
+						<phase>prepare-package</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${staging.dir.app}/lib</outputDirectory>
+							<excludeScope>system</excludeScope>
+							<!-- this excludes tools.jar, e.g. -->
+							<excludeArtifactIds>mycustompanels</excludeArtifactIds>
+							<!-- IMPORTANT: don't copy custom panels where our application jars live -->
+							<excludeGroupIds>org.codehaus.izpack</excludeGroupIds>
+							<!-- IMPORTANT: we don't want to copy the IzPack dependency where our application jars live -->
+						</configuration>
+					</execution>
+					<execution>
+						<!-- copy izpack custom (custom panels, etc.) jars to izpack staging custom -->
+						<id>copy-izpack-dependencies</id>
+						<phase>prepare-package</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${staging.dir}/custom</outputDirectory>
+							<includeArtifactIds></includeArtifactIds>
+							<!-- IMPORTANT: this causes *only* our custom panels to be copied -->
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.0</version>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.izpack</groupId>
+				<artifactId>izpack-maven-plugin</artifactId>
+				<version>${izpack.version}</version>
+				<extensions>true</extensions>
+				<configuration>
+					<baseDir>${staging.dir}</baseDir>
+					<installFile>${staging.dir}/install.xml</installFile>
+					<outputDirectory>${project.build.directory}</outputDirectory>
+					<finalName>${project.build.finalName}</finalName>
+					<enableOverrideArtifact>true</enableOverrideArtifact>
+					<mkdirs>true</mkdirs>
+					<autoIncludeUrl>false</autoIncludeUrl>
+					<autoIncludeDevelopers>false</autoIncludeDevelopers>
+				</configuration>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>izpack</goal>
+						</goals>
+						<configuration>
+							<!-- base for relative paths in izpack descriptor -->
+							<baseDir>${staging.dir}</baseDir>
+							<installFile>${staging.dir}/install.xml</installFile>
+						</configuration>
+					</execution>
+				</executions>
+				<dependencies>
+					<dependency>
+						<groupId>org.codehaus.izpack</groupId>
+						<artifactId>izpack-panel</artifactId>
+						<version>${izpack.version}</version>
+					</dependency>
+				</dependencies>
+			</plugin>
+		</plugins>
+	</build>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.apache-extras.beanshell</groupId>
+			<artifactId>bsh</artifactId>
+			<version>${beanshell.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>net.java.dev.jna</groupId>
+			<artifactId>jna</artifactId>
+			<version>${jna.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>net.java.dev.jna</groupId>
+			<artifactId>jna-platform</artifactId>
+			<version>${jna.version}</version>
+		</dependency>
+	</dependencies>
+
+</project>

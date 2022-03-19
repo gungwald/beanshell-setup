@@ -1,0 +1,15 @@
+void println(String s) {
+    System.out.println(s);
+}
+
+void println(int i) {
+    System.out.println(i);
+}
+
+void println(Object[] objectArray) {
+	for (Object o : objectArray) {
+        System.out.print(o);
+        System.out.print(' ');
+    }
+    System.out.println();
+}

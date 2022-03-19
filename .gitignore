@@ -24,3 +24,4 @@ gradle-app.setting
 
 # Silly Mac files
 .DS_Store
+/target/
